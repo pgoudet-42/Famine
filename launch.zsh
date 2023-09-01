@@ -1,1 +1,1 @@
-gcc -Wall -Wextra srcs/*.c -o Famine
+gcc -Wall -Wextra -Werror srcs/*.c -L$(pwd)/libft -lft  -L$(pwd)/libelf -lft_elf -o packer

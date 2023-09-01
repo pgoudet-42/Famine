@@ -1,4 +1,4 @@
-#include "../include/woody.h"
+#include "../include/famine.h"
 
 size_t get_symbol_header_offset(int index, struct ELFheaders64 elfHeader, struct sheaders64 *sheaders) {
     size_t begin = 0;

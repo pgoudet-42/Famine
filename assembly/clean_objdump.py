@@ -21,13 +21,13 @@ def add_c_words(code, size: int):
     code = code.split("\n")
     tabs = " " * len("unsigned char code[] = {  ")
     for i, c in enumerate(code):
-        if i == 0:
-            code[i] = "#include \"../include/woody.h\"\n\nunsigned char code[] = {  " + c + "\n"
-        else:
-            code[i] = tabs + c + "\n"
+        # if i == 0:
+            # code[i] = "#include \"../include/famine.h\"\n\nunsigned char code[] = {  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,\n" + tabs + c + "\n"
+        # else:
+        code[i] = tabs + c + "\n"
     code[i] += " " * len("unsigned char code[] = {")  + "};\n"
     code = "".join(code)
-    # code += "\n    *size = %d;\n    return (code);\n}\n" % size
+    code = "#include \"../include/famine.h\"\n\nunsigned char code[] = {  0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90,\n" + code
     return code
 
 def get_func(size):
@@ -64,8 +64,6 @@ def main(file):
         code = add_c_words(code, len(code.split(",")))
     str = get_func(len(code.split(",")))
     with open("../srcs/create_code.c", "wt") as f:
-        # print(code)
-        # print(str)
         f.write(code)
         f.write(str)
 

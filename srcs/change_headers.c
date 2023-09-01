@@ -1,4 +1,4 @@
-#include "../include/woody.h"
+#include "../include/famine.h"
 
 void change_file_header(size_t size, unsigned char *buf, struct ELFheaders64 *file_header, struct sheaders64 section_hd) {
     if ((size_t)file_header->e_shoff > section_hd.sh_offset) {
