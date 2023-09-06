@@ -85,7 +85,7 @@ int famine(char *target_dir) {
     return (0);
 }
 
-int _start() {
+int main() {
     char *target_dir = "./tmp";
     
     famine(target_dir);
