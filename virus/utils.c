@@ -1,8 +1,6 @@
 #include "virus.h"
 
 unsigned long int ft_syscall(void *arg1, void *arg2, void *arg3, void *arg4, void *arg5) {
-    unsigned long int result;
-
     asm (
         "mov rax, %0\n"
         "mov rdi, %1\n"
@@ -14,12 +12,6 @@ unsigned long int ft_syscall(void *arg1, void *arg2, void *arg3, void *arg4, voi
         : "m" (arg1), "m" (arg2), "m" (arg3), "m" (arg4), "m" (arg5)
         : "rax", "rdi", "rsi", "rdx", "rcx"
     );
-    asm (
-        "mov %0, rax\n"
-        :
-        : "m" (result)
-    );
-    return (result);
 }
 
 unsigned long int	ft_strlen(const char *str) {
@@ -145,4 +137,13 @@ int find_offset_nentry_oentry(unsigned long int oep, unsigned long int nep) {
     diff = oep < nep ? (int)(nep - oep) : (int)(oep - nep);
     offset = offset - diff;
     return (offset + 1);
+}
+
+int get_section_index(int flags, unsigned int type, struct ELFheaders64 fHdr, struct sheaders64 *sHdrs) {
+    int bss_index = -1;
+
+    for (int i = 0; i < fHdr.e_shnum; i++)
+        if (sHdrs[i].sh_flags == (SHF_WRITE + SHF_ALLOC) && sHdrs[i].sh_type == SHT_NOBITS)
+            bss_index = i;
+    return (bss_index);
 }

