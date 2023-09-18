@@ -39,9 +39,9 @@ unsigned char increaseFileSize(int fd, struct ELFheaders64 fHdr, struct sheaders
     int bss_index;
 
     bss_index = get_section_index(SHF_WRITE + SHF_ALLOC, SHT_NOBITS, fHdr, sHdrs);
-    if ((int)ft_syscall(FSTAT, (void *)fd, (void *)&buf, 0, 0) < 0)
+    if ((int)ft_syscall((void *)fd, (void *)&buf, 0, 0, FSTAT) < 0)
         return (1);
-    if((int)ft_syscall(FTRUNCATE, (void *)fd, (void *)(buf.st_size + 0x1000 + sHdrs[bss_index].sh_size), 0, 0) < 0)
+    if((int)ft_syscall((void *)fd, (void *)(buf.st_size + 0x1000 + sHdrs[bss_index].sh_size), 0, 0, FTRUNCATE) < 0)
         return (1);
     return (0);
 }
