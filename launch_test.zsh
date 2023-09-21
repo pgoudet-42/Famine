@@ -6,7 +6,7 @@ cp /usr/bin/date tmp/date
 cp hello tmp/hello
 cd assembly
 nasm -f elf64 test.s && \
-gcc -masm=intel -Wno-int-to-pointer-cast -nostartfiles -nostdlib -fno-builtin test.o -o test && \
+gcc -masm=intel -Wno-int-to-pointer-cast -nostartfiles -fPIC -nostdlib -fno-builtin test.o -o test && \
 rm test.o
 
 cd ..

