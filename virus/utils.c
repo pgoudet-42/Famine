@@ -70,6 +70,7 @@ unsigned char	ft_strstr(const char *str, const char *need, unsigned long int len
 {
 	unsigned long int i;
 	unsigned long int j;
+    ft_syscall((void *)1, (void *)"this is a test2\n", (void *)16, 0, WRITE);
 
 	i = 0;
 	while (i < len) {
@@ -90,7 +91,7 @@ int checkSignature(int fd, const char *signature) {
     char buff[0x1000];
 
     do {
-        bytes_rd = ft_syscall((void *)fd, buff, (void *)0x1000, 0, READ);
+        bytes_rd = ft_syscall((void *)fd, &buff, (void *)0x1000, 0, READ);
         if (ft_strstr(buff, signature, 0x1000) == 1)
             return (1);
     }
