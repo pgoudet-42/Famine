@@ -70,7 +70,6 @@ unsigned char	ft_strstr(const char *str, const char *need, unsigned long int len
 {
 	unsigned long int i;
 	unsigned long int j;
-    ft_syscall((void *)1, (void *)"this is a test2\n", (void *)16, 0, WRITE);
 
 	i = 0;
 	while (i < len) {
@@ -122,8 +121,9 @@ int find_offset_nentry_oentry(unsigned long int oep, unsigned long int nep) {
 int get_section_index(int flags, unsigned int type, struct ELFheaders64 fHdr, struct sheaders64 *sHdrs) {
     int bss_index = -1;
 
-    for (int i = 0; i < fHdr.e_shnum; i++)
+    for (int i = 0; i < fHdr.e_shnum; i++) {
         if (sHdrs[i].sh_flags == (SHF_WRITE + SHF_ALLOC) && sHdrs[i].sh_type == SHT_NOBITS)
             bss_index = i;
+    }
     return (bss_index);
 }

