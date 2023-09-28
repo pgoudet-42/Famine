@@ -668,17 +668,6 @@ addJump:
 	mov    QWORD [rsp+0x8],rdx
 	xor    edx,edx
 	sub    QWORD [rsp+0x8],0x4
-	; mov    rdx, rsi
-	; add    rdx, QWORD [rsp+0x8]
-	; xor rdx,rdx
-; 	mov    rdx, QWORD [rsp+0x8]
-; 	add    rdx,QWORD [r15+0x18] 
-; 	and	   rdx, 0x10
-; 	jz     .addJump.end
-; .addJump.ajustOffset:
-; 	mov    BYTE [rsp+0xf], 0
-; .addJump.end:
-; 	xor    rdx,rdx
 	mov    BYTE [rsp+0x1f],0xe9
 	call   ft_syscall
 	lea    rsi,[rsp+0x1f]
